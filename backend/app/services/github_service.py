@@ -15,7 +15,7 @@ BINARY_EXTENSIONS = {
     "lock", "m4a", "webm", "ogg",
 }
 
-# Folders that are almost never useful to include in a bundle.
+# Folders that are almost never useful to include in a bundle --
 IGNORED_FOLDERS = {
     "node_modules", "venv", ".venv", "env",
     ".git", "__pycache__", ".mypy_cache", ".pytest_cache",

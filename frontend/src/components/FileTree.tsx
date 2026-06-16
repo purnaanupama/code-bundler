@@ -10,7 +10,6 @@ interface FileTreeProps {
     selectedFiles: Set<string>
     onSelectionChange: (files: Set<string>) => void
     changedFiles?: Set<string>   // files changed since last bundle (orange)
-    addedFiles?: Set<string>     // new files not in last bundle (green)
     deletedFiles?: Set<string>   // files deleted since last bundle (red)
 }
 
@@ -20,7 +19,6 @@ interface TreeNodeRowProps {
     selectedFiles: Set<string>
     onSelectionChange: (files: Set<string>) => void
     changedFiles: Set<string>
-    addedFiles: Set<string>
     deletedFiles: Set<string>
 }
 
@@ -61,10 +59,9 @@ function getExtColor(ext: string): string {
 }
 
 // ── Diff badge shown next to changed/added files ──────────────
-function DiffBadge({ type }: { type: 'changed' | 'added' | 'deleted' }) {
+function DiffBadge({ type }: { type: 'changed' | 'deleted' }) {
     const styles = {
         changed: { bg: 'var(--orange-subtle)', color: 'var(--orange)', label: 'M' },
-        added: { bg: 'var(--green-subtle)', color: 'var(--green)', label: 'A' },
         deleted: { bg: 'var(--red-subtle)', color: 'var(--red)', label: 'D' },
     }
     const s = styles[type]
@@ -92,7 +89,6 @@ function TreeNodeRow({
     selectedFiles,
     onSelectionChange,
     changedFiles,
-    addedFiles,
     deletedFiles,
 }: TreeNodeRowProps) {
     const [isOpen, setIsOpen] = useState(depth < 2)
@@ -118,15 +114,13 @@ function TreeNodeRow({
     // Diff state for this node
     const diffType = changedFiles.has(node.path)
         ? 'changed'
-        : addedFiles.has(node.path)
-            ? 'added'
-            : isDeleted
-                ? 'deleted'
-                : null
+        : isDeleted
+            ? 'deleted'
+            : null
 
     // For folders — check if any child has a diff
     const folderHasDiff = isFolder && getSelectableFilesUnder(node).some(
-        p => changedFiles.has(p) || addedFiles.has(p) || deletedFiles.has(p)
+        p => changedFiles.has(p) || deletedFiles.has(p)
     )
 
     function handleCheck() {
@@ -223,11 +217,9 @@ function TreeNodeRow({
                     fontSize: '13px',
                     color: isDeleted
                         ? 'var(--red)'
-                        : diffType === 'added'
-                            ? 'var(--green)'
-                            : diffType === 'changed'
-                                ? 'var(--orange)'
-                                : 'var(--text-primary)',
+                        : diffType === 'changed'
+                            ? 'var(--orange)'
+                            : 'var(--text-primary)',
                     textDecoration: isDeleted ? 'line-through' : 'none',
                 }}>
                     {node.name}
@@ -269,7 +261,6 @@ function TreeNodeRow({
                             selectedFiles={selectedFiles}
                             onSelectionChange={onSelectionChange}
                             changedFiles={changedFiles}
-                            addedFiles={addedFiles}
                             deletedFiles={deletedFiles}
                         />
                     ))}
@@ -285,7 +276,6 @@ export default function FileTree({
     selectedFiles,
     onSelectionChange,
     changedFiles = new Set(),
-    addedFiles = new Set(),
     deletedFiles = new Set(),
 }: FileTreeProps) {
     if (nodes.length === 0) {
@@ -306,7 +296,6 @@ export default function FileTree({
                     selectedFiles={selectedFiles}
                     onSelectionChange={onSelectionChange}
                     changedFiles={changedFiles}
-                    addedFiles={addedFiles}
                     deletedFiles={deletedFiles}
                 />
             ))}

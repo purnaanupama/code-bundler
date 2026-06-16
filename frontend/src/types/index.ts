@@ -1,7 +1,6 @@
-// Represents a single file or folder from the GitHub repo tree
 export interface TreeItem {
     path: string
-    type: 'blob' | 'tree'   // blob = file, tree = folder
+    type: 'blob' | 'tree'
     size: number
     sha: string
     extension: string
@@ -9,7 +8,6 @@ export interface TreeItem {
     ignored: boolean
 }
 
-// What we get back when we load a repo
 export interface LoadRepoResponse {
     owner: string
     repo: string
@@ -20,7 +18,6 @@ export interface LoadRepoResponse {
     ascii_tree: string
 }
 
-// What we send when generating a bundle
 export interface BundleRequest {
     owner: string
     repo: string
@@ -29,31 +26,27 @@ export interface BundleRequest {
     files: string[]
     ascii_tree: string | null
     include_structure: boolean
-    strip_empty_lines: boolean
+    // strip_empty_lines removed — always applied on backend now
 }
 
-// What we get back after generating a bundle
 export interface BundleResponse {
     bundle: string
     token_estimate: number
     file_count: number
 }
 
-// What we get back after comparing with a previous bundle
 export interface CompareResponse {
+    files: string[]      // file paths found in the uploaded bundle
     changed: string[]
-    added: string[]
     deleted: string[]
     unchanged: string[]
     summary: {
         changed: number
-        added: number
         deleted: number
         unchanged: number
     }
 }
 
-// A node in our rendered file tree (nested structure)
 export interface TreeNode {
     name: string
     path: string

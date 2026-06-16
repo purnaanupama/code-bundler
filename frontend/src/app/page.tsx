@@ -85,7 +85,6 @@ export default function Home() {
 
   // Bundle options
   const [includeStructure, setIncludeStructure] = useState(true)
-  const [stripEmptyLines, setStripEmptyLines] = useState(false)
 
   // Output state
   const [bundleResult, setBundleResult] = useState<BundleResponse | null>(null)
@@ -154,7 +153,6 @@ export default function Home() {
         files: Array.from(selectedFiles),
         ascii_tree: repoData.ascii_tree,
         include_structure: includeStructure,
-        strip_empty_lines: stripEmptyLines,
       })
       setBundleResult(result)
     } catch (e: unknown) {
@@ -175,13 +173,13 @@ export default function Home() {
         repoData.owner,
         repoData.repo,
         token.trim() || null,
+        branch,
         file
       )
       setCompareResult(result)
 
-      // Auto-select only changed + added files in the tree
-      const autoSelect = new Set([...result.changed, ...result.added])
-      setSelectedFiles(autoSelect)
+      // Auto-select ONLY the files that were in the uploaded bundle
+      setSelectedFiles(new Set(result.files))
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to compare bundles.')
     } finally {
@@ -201,9 +199,8 @@ export default function Home() {
     setSelectedFiles(new Set())
   }
 
-  // Sets for diff highlighting in the tree
+  // Sets for diff highlighting in the tree — "added" no longer exists
   const changedSet = new Set(compareResult?.changed ?? [])
-  const addedSet = new Set(compareResult?.added ?? [])
   const deletedSet = new Set(compareResult?.deleted ?? [])
 
   // ── Render ──────────────────────────────────────────────────
@@ -376,7 +373,6 @@ export default function Home() {
                 selectedFiles={selectedFiles}
                 onSelectionChange={handleSelectionChange}
                 changedFiles={changedSet}
-                addedFiles={addedSet}
                 deletedFiles={deletedSet}
               />
             </div>
@@ -394,8 +390,6 @@ export default function Home() {
               <BundleOptions
                 includeStructure={includeStructure}
                 onIncludeStructureChange={setIncludeStructure}
-                stripEmptyLines={stripEmptyLines}
-                onStripEmptyLinesChange={setStripEmptyLines}
                 selectedCount={selectedFiles.size}
                 totalCount={totalSelectable}
                 onGenerate={handleGenerate}
@@ -438,6 +432,8 @@ export default function Home() {
                 onClose={() => setShowCompare(false)}
                 isLoading={loadingCompare}
                 onCompare={handleCompare}
+                result={compareResult}
+                onReset={() => setCompareResult(null)}
               />
             )}
           </div>

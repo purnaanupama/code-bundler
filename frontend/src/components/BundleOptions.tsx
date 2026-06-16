@@ -1,12 +1,10 @@
 'use client'
 
-import { Layers, AlignLeft, Zap } from 'lucide-react'
+import { Layers, Zap } from 'lucide-react'
 
 interface BundleOptionsProps {
     includeStructure: boolean
     onIncludeStructureChange: (val: boolean) => void
-    stripEmptyLines: boolean
-    onStripEmptyLinesChange: (val: boolean) => void
     selectedCount: number
     totalCount: number
     onGenerate: () => void
@@ -47,7 +45,6 @@ function ToggleRow({ icon, label, description, checked, onChange }: ToggleRowPro
                 </div>
             </div>
 
-            {/* Toggle switch */}
             <div
                 onClick={() => onChange(!checked)}
                 style={{
@@ -82,8 +79,6 @@ function ToggleRow({ icon, label, description, checked, onChange }: ToggleRowPro
 export default function BundleOptions({
     includeStructure,
     onIncludeStructureChange,
-    stripEmptyLines,
-    onStripEmptyLinesChange,
     selectedCount,
     totalCount,
     onGenerate,
@@ -93,7 +88,6 @@ export default function BundleOptions({
 
     return (
         <div>
-            {/* Options */}
             <ToggleRow
                 icon={<Layers size={15} />}
                 label="Include project structure"
@@ -101,15 +95,7 @@ export default function BundleOptions({
                 checked={includeStructure}
                 onChange={onIncludeStructureChange}
             />
-            <ToggleRow
-                icon={<AlignLeft size={15} />}
-                label="Strip empty lines"
-                description="Removes blank lines from all files — saves tokens, code stays readable"
-                checked={stripEmptyLines}
-                onChange={onStripEmptyLinesChange}
-            />
 
-            {/* Selection summary */}
             <div
                 style={{
                     display: 'flex',
@@ -125,7 +111,6 @@ export default function BundleOptions({
                 </span>
             </div>
 
-            {/* Generate button */}
             <button
                 onClick={onGenerate}
                 disabled={!canGenerate}

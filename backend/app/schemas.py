@@ -1,14 +1,10 @@
 from pydantic import BaseModel
 
 
-# ──────────────────────────────────────────────
-# LOAD REPO
-# ──────────────────────────────────────────────
-
 class LoadRepoRequest(BaseModel):
     url: str
     token: str | None = None
-    branch: str | None = None  # if None, uses the default branch
+    branch: str | None = None
 
 
 class TreeItem(BaseModel):
@@ -25,25 +21,21 @@ class LoadRepoResponse(BaseModel):
     owner: str
     repo: str
     default_branch: str
-    branch: str          # the branch actually loaded
-    branches: list[str]  # all available branches for the picker
+    branch: str
+    branches: list[str]
     tree: list[TreeItem]
     ascii_tree: str
 
-
-# ──────────────────────────────────────────────
-# GENERATE BUNDLE
-# ──────────────────────────────────────────────
 
 class BundleRequest(BaseModel):
     owner: str
     repo: str
     token: str | None = None
-    branch: str | None = None  # which branch to fetch file contents from
+    branch: str | None = None
     files: list[str]
     ascii_tree: str | None = None
     include_structure: bool = True
-    strip_empty_lines: bool = False
+    # strip_empty_lines removed — always applied now
 
 
 class BundleResponse(BaseModel):
@@ -52,27 +44,23 @@ class BundleResponse(BaseModel):
     file_count: int
 
 
-# ──────────────────────────────────────────────
-# COMPARE (diff against previous bundle)
-# ──────────────────────────────────────────────
-
 class CompareRequest(BaseModel):
     owner: str
     repo: str
     token: str | None = None
-    branch: str | None = None  # which branch to compare against
+    branch: str | None = None
 
 
 class DiffSummary(BaseModel):
     changed: int
-    added: int
     deleted: int
     unchanged: int
 
 
 class CompareResponse(BaseModel):
+    # all file paths found in the uploaded bundle (for auto-select)
+    files: list[str]
     changed: list[str]
-    added: list[str]
     deleted: list[str]
     unchanged: list[str]
     summary: DiffSummary

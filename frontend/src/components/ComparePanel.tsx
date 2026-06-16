@@ -8,10 +8,12 @@ interface ComparePanelProps {
     owner: string
     repo: string
     token: string | null
-    onCompareComplete: (result: CompareResponse) => void
+    onCompareComplete: (result: CompareResponse | null) => void
     onClose: () => void
     isLoading: boolean
     onCompare: (file: File) => void
+    result: CompareResponse | null
+    onReset?: () => void
 }
 
 interface DiffSectionProps {
@@ -27,14 +29,7 @@ function DiffSection({ title, files, color, bg, badge }: DiffSectionProps) {
 
     return (
         <div style={{ marginBottom: '16px' }}>
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    marginBottom: '6px',
-                }}
-            >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                 <span
                     style={{
                         background: bg,
@@ -85,22 +80,19 @@ function DiffSection({ title, files, color, bg, badge }: DiffSectionProps) {
 }
 
 export default function ComparePanel({
-    owner,
-    repo,
-    token,
-    onCompareComplete,
     onClose,
     isLoading,
     onCompare,
+    result,
+    onReset,
 }: ComparePanelProps) {
     const [dragOver, setDragOver] = useState(false)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
-    const [result, setResult] = useState<CompareResponse | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     function handleFile(file: File) {
         setSelectedFile(file)
-        setResult(null)
+        onReset?.()
     }
 
     function handleDrop(e: React.DragEvent) {
@@ -115,10 +107,7 @@ export default function ComparePanel({
         onCompare(selectedFile)
     }
 
-    const totalChanged =
-        result
-            ? result.summary.changed + result.summary.added + result.summary.deleted
-            : 0
+    const totalChanged = result ? result.summary.changed + result.summary.deleted : 0
 
     return (
         <div
@@ -129,7 +118,6 @@ export default function ComparePanel({
                 overflow: 'hidden',
             }}
         >
-            {/* Header */}
             <div
                 style={{
                     display: 'flex',
@@ -143,7 +131,7 @@ export default function ComparePanel({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <GitCompare size={14} color="var(--blue)" />
                     <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        Compare with previous bundle
+                        Find changes since last bundle
                     </span>
                 </div>
                 <button
@@ -163,7 +151,6 @@ export default function ComparePanel({
             </div>
 
             <div style={{ padding: '16px' }}>
-                {/* Upload area */}
                 {!result && (
                     <>
                         <div
@@ -210,7 +197,7 @@ export default function ComparePanel({
                                         Drop your previous bundle here
                                     </div>
                                     <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                                        or click to browse — accepts .txt files
+                                        We'll re-bundle only the files it contains and compare
                                     </div>
                                 </>
                             )}
@@ -236,15 +223,13 @@ export default function ComparePanel({
                             }}
                         >
                             <GitCompare size={14} />
-                            {isLoading ? 'Comparing...' : 'Find changed files'}
+                            {isLoading ? 'Comparing...' : 'Find changes'}
                         </button>
                     </>
                 )}
 
-                {/* Results */}
                 {result && (
                     <div>
-                        {/* Summary bar */}
                         <div
                             style={{
                                 display: 'flex',
@@ -259,11 +244,6 @@ export default function ComparePanel({
                             {result.summary.changed > 0 && (
                                 <span style={{ fontSize: '12px', color: 'var(--orange)' }}>
                                     {result.summary.changed} modified
-                                </span>
-                            )}
-                            {result.summary.added > 0 && (
-                                <span style={{ fontSize: '12px', color: 'var(--green)' }}>
-                                    {result.summary.added} added
                                 </span>
                             )}
                             {result.summary.deleted > 0 && (
@@ -283,20 +263,12 @@ export default function ComparePanel({
                             )}
                         </div>
 
-                        {/* File lists */}
                         <DiffSection
                             title="Modified"
                             files={result.changed}
                             color="var(--orange)"
                             bg="var(--orange-subtle)"
                             badge="M"
-                        />
-                        <DiffSection
-                            title="Added"
-                            files={result.added}
-                            color="var(--green)"
-                            bg="var(--green-subtle)"
-                            badge="A"
                         />
                         <DiffSection
                             title="Deleted"
@@ -306,11 +278,10 @@ export default function ComparePanel({
                             badge="D"
                         />
 
-                        {/* Actions */}
                         <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
                             <button
                                 onClick={() => {
-                                    setResult(null)
+                                    onReset?.()
                                     setSelectedFile(null)
                                 }}
                                 style={{

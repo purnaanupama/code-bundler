@@ -9,10 +9,6 @@ import {
 
 const API_BASE = 'http://localhost:8000/api'
 
-// ──────────────────────────────────────────────
-// API CALLS
-// ──────────────────────────────────────────────
-
 export async function loadRepo(
     url: string,
     token: string | null,
@@ -53,14 +49,14 @@ export async function compareBundle(
     owner: string,
     repo: string,
     token: string | null,
+    branch: string | null,
     previousBundleFile: File
 ): Promise<CompareResponse> {
-    // Compare uses multipart form data because we're uploading a file
     const formData = new FormData()
     formData.append('previous_bundle', previousBundleFile)
     formData.append(
         'request',
-        JSON.stringify({ owner, repo, token: token || null })
+        JSON.stringify({ owner, repo, token: token || null, branch: branch || null })
     )
 
     const res = await fetch(`${API_BASE}/bundle/compare`, {
@@ -76,17 +72,10 @@ export async function compareBundle(
     return res.json()
 }
 
-// ──────────────────────────────────────────────
-// TREE HELPERS
-// ──────────────────────────────────────────────
-
-// Converts the flat list GitHub gives us into a nested tree
-// that the FileTree component can render
 export function buildTreeNodes(flatTree: TreeItem[]): TreeNode[] {
     const root: TreeNode[] = []
     const map: Record<string, TreeNode> = {}
 
-    // Sort so folders come before files at each level
     const sorted = [...flatTree].sort((a, b) => {
         if (a.type !== b.type) return a.type === 'tree' ? -1 : 1
         return a.path.localeCompare(b.path)
@@ -110,10 +99,8 @@ export function buildTreeNodes(flatTree: TreeItem[]): TreeNode[] {
         map[item.path] = node
 
         if (parts.length === 1) {
-            // Top-level item
             root.push(node)
         } else {
-            // Find parent folder and add this as a child
             const parentPath = parts.slice(0, -1).join('/')
             if (map[parentPath]) {
                 map[parentPath].children.push(node)
@@ -124,8 +111,6 @@ export function buildTreeNodes(flatTree: TreeItem[]): TreeNode[] {
     return root
 }
 
-// Given a folder node, returns all selectable file paths underneath it
-// Selectable = not binary, not ignored
 export function getSelectableFilesUnder(node: TreeNode): string[] {
     const paths: string[] = []
 
@@ -145,12 +130,10 @@ export function getSelectableFilesUnder(node: TreeNode): string[] {
     return paths
 }
 
-// Returns all selectable file paths in the entire tree
 export function getAllSelectableFiles(nodes: TreeNode[]): string[] {
     return nodes.flatMap((node) => getSelectableFilesUnder(node))
 }
 
-// Formats bytes into a human readable size string
 export function formatSize(bytes: number): string {
     if (bytes === 0) return ''
     if (bytes < 1024) return `${bytes}B`
